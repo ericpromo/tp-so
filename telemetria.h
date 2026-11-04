@@ -5,7 +5,7 @@
 
 typedef struct {
     sem_t mutex;
-    unsigned log seq;
+    unsigned long seq;
     double temperatura;
     double presion;
     double vibracion;
@@ -13,10 +13,10 @@ typedef struct {
 
 #ifdef SIN_SYNC
     #define LOCK(t)
-    #define UNLOCL(t)
+    #define UNLOCK(t)
 #else
     #define LOCK(t) sem_wait(&(t)->mutex)
-    #define UNLOCK(t) sem_wait(&(t)->mutex)
+    #define UNLOCK(t) sem_post(&(t)->mutex)
 #endif
 
 #endif
