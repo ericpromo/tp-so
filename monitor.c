@@ -3,6 +3,7 @@
 #include <sys/mman.h>   // shm_open, mmap, munmap
 #include <unistd.h>     // close
 #include "telemetria.h" // nuestro molde, SHM_NAME, LOCK y UNLOCK
+#include <time.h> //clock_gettime
 
 #define LECTURAS 1000000        // cuantas veces lee el monitor
 #define UMBRAL_PELIGRO 95.0     // a partir de que temperatura hay alerta
@@ -23,6 +24,9 @@ int main(void) {
     unsigned long inconsistentes = 0, alertas = 0;
     unsigned long ultimo_seq = 0, distintas = 0;              // para contar mediciones distintas
     unsigned long ultimo_corrupto = 0, mediciones_corruptas = 0; // para contar mediciones corruptas distintas
+
+    struct timespec inicio, fin;
+    clock_gettime(CLOCK_MONOTONIC, &inicio);
 
     for (int n = 0; n < LECTURAS; n++) {
         Telemetria c;           // ficha local, privada del monitor
@@ -51,6 +55,9 @@ int main(void) {
         }
     }
 
+    clock_gettime(CLOCK_MONOTONIC, &fin);
+    double segundos = (fin.tv_sec - inicio.tv_sec) + (fin.tv_nsec - inicio.tv_nsec) / 1e9;
+
     printf("\nResultado:\n");
     printf("  Lecturas totales:        %d\n", LECTURAS);
     printf(" Mediciones distintas:     %lu\n", distintas);
@@ -58,6 +65,8 @@ int main(void) {
            inconsistentes, 100.0 * inconsistentes / LECTURAS);
     printf("  Mediciones corruptas:    %lu de %lu\n", mediciones_corruptas, distintas);
     printf("  Alertas de peligro:      %lu\n", alertas);
+    printf("  Tiempo total:            %.3f segundos\n", segundos);
+    printf("  Tiempo por lectura:      %.1f nanosegundos\n", segundos * 1e9 / LECTURAS);
 
     // Limpieza: el monitor NO borra la memoria ni destruye el semaforo (eso es del sensor)
     munmap(t, sizeof(Telemetria));

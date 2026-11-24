@@ -11,6 +11,15 @@ typedef struct {
     double vibracion;
 } Telemetria;
 
+#define ARCHIVO "telemetria.dat"
+
+typedef struct {
+    unsigned long seq;
+    double temperatura;
+    double presion;
+    double vibracion;
+} Medicion;
+
 #ifdef SIN_SYNC
     #define LOCK(t)
     #define UNLOCK(t)
